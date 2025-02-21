@@ -1,17 +1,24 @@
+import java.awt.*;
 import java.util.ArrayList;
-import java.util.Scanner;
+import javax.swing.*;
 
 class Vehicle {
     String vehicleNumber;
+    String vehicleName;
     boolean isRented;
 
-    public Vehicle(String vehicleNumber) {
+    public Vehicle(String vehicleNumber, String vehicleName) {
         this.vehicleNumber = vehicleNumber;
+        this.vehicleName = vehicleName;
         this.isRented = false;
     }
 
     public String getVehicleNumber() {
         return vehicleNumber;
+    }
+
+    public String getVehicleName() {
+        return vehicleName;
     }
 
     public boolean isRented() {
@@ -30,6 +37,7 @@ class Vehicle {
     public String toString() {
         return "Vehicle{" +
                 "vehicleNumber='" + vehicleNumber + '\'' +
+                ", vehicleName='" + vehicleName + '\'' +
                 ", isRented=" + isRented +
                 '}';
     }
@@ -37,83 +45,86 @@ class Vehicle {
 
 class VehicleRentalSystem {
     ArrayList<Vehicle> vehicleList = new ArrayList<>();
+    JFrame frame;
+    JTextArea textArea;
 
-    public void addVehicle(String vehicleNumber) {
-        Vehicle vehicle = new Vehicle(vehicleNumber);
-        vehicleList.add(vehicle);
-        System.out.println("Vehicle " + vehicleNumber + " added successfully.");
+    public VehicleRentalSystem() {
+        frame = new JFrame("Vehicle Rental System");
+        textArea = new JTextArea(15, 30);
+        textArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(textArea);
+
+        JButton addButton = new JButton("Add Vehicle");
+        JButton rentButton = new JButton("Rent Vehicle");
+        JButton returnButton = new JButton("Return Vehicle");
+        JButton listButton = new JButton("List Vehicles");
+
+        addButton.addActionListener(e -> addVehicle());
+        rentButton.addActionListener(e -> rentVehicle());
+        returnButton.addActionListener(e -> returnVehicle());
+        listButton.addActionListener(e -> listVehicles());
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(4, 1));
+        panel.add(addButton);
+        panel.add(rentButton);
+        panel.add(returnButton);
+        panel.add(listButton);
+
+        frame.setLayout(new BorderLayout());
+        frame.add(panel, BorderLayout.WEST);
+        frame.add(scrollPane, BorderLayout.CENTER);
+        frame.pack();
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
     }
 
-    public void rentVehicle(String vehicleNumber) {
-        for (Vehicle vehicle : vehicleList) {
-            if (vehicle.getVehicleNumber().equals(vehicleNumber) && !vehicle.isRented()) {
-                vehicle.rent();
-                System.out.println("Vehicle " + vehicleNumber + " rented successfully.");
-                return;
-            }
+    public void addVehicle() {
+        String vehicleNumber = JOptionPane.showInputDialog(frame, "Enter vehicle number:");
+        String vehicleName = JOptionPane.showInputDialog(frame, "Enter vehicle name:");
+        if (vehicleNumber != null && vehicleName != null) {
+            Vehicle vehicle = new Vehicle(vehicleNumber, vehicleName);
+            vehicleList.add(vehicle);
+            textArea.append("Vehicle " + vehicleName + " (" + vehicleNumber + ") added successfully.\n");
         }
-        System.out.println("Vehicle " + vehicleNumber + " is not available for rent.");
     }
 
-    public void returnVehicle(String vehicleNumber) {
-        for (Vehicle vehicle : vehicleList) {
-            if (vehicle.getVehicleNumber().equals(vehicleNumber) && vehicle.isRented()) {
-                vehicle.returnVehicle();
-                System.out.println("Vehicle " + vehicleNumber + " returned successfully.");
-                return;
+    public void rentVehicle() {
+        String vehicleNumber = JOptionPane.showInputDialog(frame, "Enter vehicle number to rent:");
+        if (vehicleNumber != null) {
+            for (Vehicle vehicle : vehicleList) {
+                if (vehicle.getVehicleNumber().equals(vehicleNumber) && !vehicle.isRented()) {
+                    vehicle.rent();
+                    textArea.append("Vehicle " + vehicle.getVehicleName() + " (" + vehicleNumber + ") rented successfully.\n");
+                    return;
+                }
             }
+            textArea.append("Vehicle " + vehicleNumber + " is not available for rent.\n");
         }
-        System.out.println("Vehicle " + vehicleNumber + " was not rented.");
+    }
+
+    public void returnVehicle() {
+        String vehicleNumber = JOptionPane.showInputDialog(frame, "Enter vehicle number to return:");
+        if (vehicleNumber != null) {
+            for (Vehicle vehicle : vehicleList) {
+                if (vehicle.getVehicleNumber().equals(vehicleNumber) && vehicle.isRented()) {
+                    vehicle.returnVehicle();
+                    textArea.append("Vehicle " + vehicle.getVehicleName() + " (" + vehicleNumber + ") returned successfully.\n");
+                    return;
+                }
+            }
+            textArea.append("Vehicle " + vehicleNumber + " was not rented.\n");
+        }
     }
 
     public void listVehicles() {
+        textArea.append("List of Vehicles:\n");
         for (Vehicle vehicle : vehicleList) {
-            System.out.println(vehicle);
+            textArea.append(vehicle.toString() + "\n");
         }
     }
 
     public static void main(String[] args) {
-        VehicleRentalSystem vrs = new VehicleRentalSystem();
-        Scanner scanner = new Scanner(System.in);
-        int choice;
-        String vehicleNumber;
-
-        do {
-            System.out.println("\nVehicle Rental System");
-            System.out.println("1. Add Vehicle");
-            System.out.println("2. Rent Vehicle");
-            System.out.println("3. Return Vehicle");
-            System.out.println("4. List Vehicles");
-            System.out.println("5. Exit");
-            System.out.print("Enter your choice: ");
-            choice = scanner.nextInt();
-            scanner.nextLine(); // consume newline
-
-            switch (choice) {
-                case 1:
-                    System.out.print("Enter vehicle number: ");
-                    vehicleNumber = scanner.nextLine();
-                    vrs.addVehicle(vehicleNumber);
-                    break;
-                case 2:
-                    System.out.print("Enter vehicle number to rent: ");
-                    vehicleNumber = scanner.nextLine();
-                    vrs.rentVehicle(vehicleNumber);
-                    break;
-                case 3:
-                    System.out.print("Enter vehicle number to return: ");
-                    vehicleNumber = scanner.nextLine();
-                    vrs.returnVehicle(vehicleNumber);
-                    break;
-                case 4:
-                    vrs.listVehicles();
-                    break;
-                case 5:
-                    System.out.println("Exiting...");
-                    break;
-                default:
-                    System.out.println("Invalid choice. Please try again.");
-            }
-        } while (choice != 5);
+        SwingUtilities.invokeLater(VehicleRentalSystem::new);
     }
 }
